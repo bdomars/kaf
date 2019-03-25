@@ -6,6 +6,7 @@ import (
 
 	schemaregistry "github.com/Landoop/schema-registry"
 	"github.com/linkedin/goavro"
+	"github.com/pkg/errors"
 )
 
 type cachedCodec struct {
@@ -28,6 +29,11 @@ func NewSchemaCache(url string) (*SchemaCache, error) {
 	client, err := schemaregistry.NewClient(url)
 	if err != nil {
 		return nil, err
+	}
+
+	// Check that schema registry is okay and answering queries
+	if _, err := client.Subjects(); err != nil {
+		return nil, errors.Wrap(err, "failed to connect to schema-registry")
 	}
 
 	c := &SchemaCache{
